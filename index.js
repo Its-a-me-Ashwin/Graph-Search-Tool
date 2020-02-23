@@ -9,6 +9,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(bodyParser.raw());
 
+
 /*
 /api/v1/test
 */
@@ -53,7 +54,7 @@ app.post('/api/v1/dijkstra', (req,res) => {
 
 
 /*
-/api/v1/bfs
+/api/v1/dfs
 input : {
             "nodes" : ["a", "b", "c" ....],
             "edges": [["a","b"],.....],
@@ -62,12 +63,48 @@ input : {
             "dst":
         }
 */
-app.post('/api/v1/dfs', (req,res) => {
-    console.log("BFS");
-    res.status(200).send("Nice");
-    
-});
 
+
+function dfs (graph)
+{
+    var serilaize = graph.serialize();
+    console.log(serilaize);
+    var visited = [];
+    for (let i = 0; i < serilaize["nodes"].length; ++i)
+    {
+        visited.push(0);
+    }
+    console.log(visited);
+    //dfs_utile()
+}
+
+function dfs_utils (graph,visited,a)
+{
+    return;
+}
+
+
+app.post('/api/v1/dfs', (req,res) => {
+    console.log("DFS");
+    if (req.body["edges"].length != req.body["weights"].length || req.body["symetric"] == 1)
+    {
+        res.status(404).send("Bad Request (Wrong Size/ Non Symetric)");
+    }
+    else
+    {
+        var graph = Graph();
+        for (let i = 0; i < req.body["nodes"].length; ++i)
+        {
+            graph.addNode(req.body["nodes"][i]);
+        }
+        for (let i = 0; i < req.body["edges"].length; ++i)
+        {
+            graph.addEdge(req.body["edges"][i][0],req.body["edges"][i][1],req.body["weights"][i]);
+        }
+        dfs(graph);
+        res.status(200).send("SUck a dick");
+    }
+});
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
