@@ -65,39 +65,34 @@ input : {
 */
 
 
-function dfs (graph,src,dst)
+function dfs_utils (serilaize,graph,visited,a,num)
 {
-    var serilaize = graph.serialize();
-    console.log(serilaize);
-    var visited = new Object();
-    for (let i = 0; i < serilaize["nodes"].length; ++i)
-    {
-        visited[serilaize["nodes"][i]] = 0;
-    }
-    console.log(visited);
-    dfs_utile(graph,visited,src,dst);
-    if (visited[dst] == 1)
-    {
-        console.log("Found");
-    }
-    else
-    {
-        console.log("Not found");
-    }
-}
-
-function dfs_utils (graph,visited,a)
-{
-    visited[a] = 1;
-    for (let j =0; j < serilaize["links"].length; ++j)
+    visited[a] = num;
+    num +=1;
+    for (let j = 0; j < serilaize["links"].length; ++j)
     {
         if (serilaize["links"][j]["source"] == a)
             if (visited[serilaize["links"][j]["target"]] == 0)
             {
-                dfs_utils(graph,visited,j);
+                dfs_utils(serilaize,graph,visited,serilaize["links"][j]["target"],num);
             }
     }
 }
+
+
+function dfs (graph,src,dst)
+{
+    var serilaize = graph.serialize();
+    //console.log(serilaize);
+    var visited = new Object();
+    for (let i = 0; i < serilaize["nodes"].length; ++i)
+    {
+        visited[serilaize["nodes"][i]["id"]] = 0;
+    }
+    dfs_utils(serilaize,graph,visited,src,1);
+    return visited
+}
+
 
 
 app.post('/api/v1/dfs', (req,res) => {
@@ -117,8 +112,15 @@ app.post('/api/v1/dfs', (req,res) => {
         {
             graph.addEdge(req.body["edges"][i][0],req.body["edges"][i][1],req.body["weights"][i]);
         }
-        dfs(graph,req.body["src"],req.body["dst"]);
-        res.status(200).send("SUck a dick");
+        var visited = dfs(graph,req.body["src"],req.body["dst"]);
+        if (visited[req.body["dst"]] != 0)
+        {
+            res.status(200).send(JSON.stringify(visited));
+        }
+        else
+        {
+            res.status(200).send("No path found");
+        }
     }
 });
 
