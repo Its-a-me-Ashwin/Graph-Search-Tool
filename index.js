@@ -91,7 +91,6 @@ app.get('/api/v1/test', (req,res) => {
 input : {
             "nodes" : ["a", "b", "c" ....],
             "edges": [["a","b"],.....],
-            "symetric" : 0
             "src" : 
             "dst":
         }
@@ -116,7 +115,14 @@ app.post('/api/v1/dijkstra', (req,res) => {
         var serilaize = graph.serialize();
         var result = graph.shortestPath(req.body["src"],req.body["dst"]); 
         console.log(serilaize);
-        res.status(200).send(result);
+        var out = {}           
+        var num = 1;
+        for (let i = 0; i < result.length; ++i)
+        {
+            out[result[i]] = num;
+            num += 1;
+        }
+        res.status(200).send(JSON.stringify(out));
     }
 });
 
@@ -126,7 +132,6 @@ app.post('/api/v1/dijkstra', (req,res) => {
 input : {
             "nodes" : ["a", "b", "c" ....],
             "edges": [["a","b"],.....],
-            "symetric" : 0
             "src" : 
             "dst":
         }
@@ -171,7 +176,6 @@ app.post('/api/v1/dfs', (req,res) => {
 input : {
             "nodes" : ["a", "b", "c" ....],
             "edges": [["a","b"],.....],
-            "symetric" : 0
             "src" : 
             "dst":
         }
