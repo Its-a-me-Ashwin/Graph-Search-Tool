@@ -12,7 +12,7 @@ class Canvas extends Component {
           ctx.font = "40px Courier"
           ctx.fillText(this.props.text, 210, 75)
         }
-    }
+    }PES1201700003
 
     render() { 
         return ( <div>

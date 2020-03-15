@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import Canvas from './canvas'
+//import Canvas from './canvas'
 class Counter extends Component {
     state = { 
         nodeData : [], /*
@@ -21,6 +21,35 @@ class Counter extends Component {
     constructor (){
         super();
         this.addNode = this.addNode.bind(this); 
+        this.addEdge = this.addEdge.bind(this); 
+    }
+
+
+    sendApiCall (url,bodyJson)
+    {
+        if (typeof(url) == undefined || typeof(body) == undefined)
+            return;
+
+        var result;
+        return fetch(url, {
+        method: 'POST',
+        body: bodyJson,
+        }).then((response) => response.json()).then(
+            (responseJson) => 
+            {
+                result = responseJson;
+                console.log("test1",result);
+                return result;
+            }
+        );
+    }
+
+    // fix this shit
+    testApi ()
+    {
+        var bodyData = {}
+        var testData = this.sendApiCall('http://127.0.0.1:8080/api/v1/test',bodyData);
+        console.log("Data Received",testData)
     }
 
     renderNodesList () {
@@ -136,7 +165,7 @@ class Counter extends Component {
                 {this.renderNodesList ()}
                 {this.renderEdgesList()}
                 <hr/>
-                <Canvas/>
+                <button onClick = {() => this.testApi()} className = "btn btn-secondary btn-sm"> Test API </button>
             </div>
         );
     }
