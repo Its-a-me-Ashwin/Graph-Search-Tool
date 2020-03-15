@@ -10,6 +10,17 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(bodyParser.raw());
 
+app.use(function(req, res, next) {
+
+    res.header("Access-Control-Allow-Origin", "*");
+  
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  
+    next();
+  
+  });
+
+
 
 // Helper functions
 
@@ -78,11 +89,31 @@ function bfs (graph,src,dst)
 }
 
 
+function greedy (graph,huri,src,dst)
+{
+    var serilaize = graph.serialize();
+    var num = 1;
+    var visited = new Object();
+    for (let i = 0; i < serilaize["nodes"].length; ++i)
+    {
+        visited[serilaize["nodes"][i]["id"]] = 0;
+    }
+    console.log(serilaize);
+    console.log(huri,src,dst);
+    var queue = new Queue();    
+    queue.enqueue({src:huri[src]});
+    console.log(queue);
+
+
+}
+
+
 /*
 /api/v1/test
 */
-app.get('/api/v1/test', (req,res) => {
-    res.satus(200).send("Online");
+app.post('/api/v1/test', (req,res) => {
+    console.log("Testing")
+    res.status(200).send({"Status" : "Working"});
 });
 
 
@@ -90,6 +121,7 @@ app.get('/api/v1/test', (req,res) => {
 /api/v1/dijkstra
 input : {
             "nodes" : ["a", "b", "c" ....],
+            "weights" : [1,2],
             "edges": [["a","b"],.....],
             "src" : 
             "dst":
@@ -114,7 +146,7 @@ app.post('/api/v1/dijkstra', (req,res) => {
         }
         var serilaize = graph.serialize();
         var result = graph.shortestPath(req.body["src"],req.body["dst"]); 
-        console.log(serilaize);
+        //console.log(serilaize);
         var out = {}           
         var num = 1;
         for (let i = 0; i < result.length; ++i)
@@ -131,6 +163,7 @@ app.post('/api/v1/dijkstra', (req,res) => {
 /api/v1/dfs
 input : {
             "nodes" : ["a", "b", "c" ....],
+            "weights" : [1,2],
             "edges": [["a","b"],.....],
             "src" : 
             "dst":
@@ -154,7 +187,7 @@ app.post('/api/v1/dfs', (req,res) => {
             graph.addEdge(req.body["edges"][i][0],req.body["edges"][i][1],req.body["weights"][i]);
         }
         var visited = dfs(graph,req.body["src"],req.body["dst"]);
-        console.log(visited,visited[req.body["dst"]]);
+        //console.log(visited,visited[req.body["dst"]]);
         if (visited[req.body["dst"]] == undefined)
         {
             res.status(200).send("Node not found");
@@ -175,6 +208,7 @@ app.post('/api/v1/dfs', (req,res) => {
 /api/v1/bfs
 input : {
             "nodes" : ["a", "b", "c" ....],
+            "weights" : [1,2],
             "edges": [["a","b"],.....],
             "src" : 
             "dst":
@@ -198,7 +232,7 @@ app.post('/api/v1/bfs', (req,res) => {
             graph.addEdge(req.body["edges"][i][0],req.body["edges"][i][1],req.body["weights"][i]);
         }
         var visited = bfs(graph,req.body["src"],req.body["dst"]);
-        console.log(visited,visited[req.body["dst"]]);
+        //console.log(visited,visited[req.body["dst"]]);
         if (visited[req.body["dst"]] == undefined)
         {
             res.status(200).send("Node not found");
@@ -214,10 +248,92 @@ app.post('/api/v1/bfs', (req,res) => {
     }
 });
 
+/*
+/api/v1/astar
+input : {
+            "nodes" : ["a", "b", "c" ....],
+            "weights" : [1,2], // heurustic
+            "edges": [["a","b"],.....],
+            "src" : 
+            "dst":
+        }
+*/
+app.post('/api/v1/astar', (req,res) => {
+    console.log("A *");
+    if (req.body["edges"].length != req.body["weights"].length || req.body["symetric"] == 1 || req.body["nodes"].length != req.body["heuri"].length)
+    {
+        res.status(404).send("Bad Request (Wrong Size/ Non Symetric)");
+    }
+    else
+    {
+        var graph = Graph();
+        var nodes = new Object();
+        for (let i = 0; i < req.body["nodes"].length; ++i)
+        {
+            graph.addNode(req.body["nodes"][i]);
+            nodes[req.body["nodes"][i]] = req.body["heuri"][i]
+        }
+        for (let i = 0; i < req.body["edges"].length; ++i)
+        {
+            graph.addEdge(req.body["edges"][i][0],req.body["edges"][i][1],req.body["weights"][i]);
+        }
+        var serilaize = graph.serialize();
+        console.log(serilaize);
+        console.log(graph);
+        console.log(nodes);
+        /*  A start algo goes here  */
+
+        var openList = []
+        var closeList = []
+
+
+        openList.push(nodes[req.body["src"]]);
+
+        while (! openList.isEmpty())
+        {
+            min = Math.min(...openList);
+        }
+        
+        res.status(404).send("Nibbas");
+    }
+    //res.status(404).send("Nibbas");
+});
+
+
+app.post('/api/v1/greedySearch', (req,res) => {
+    console.log("Greedy");
+    if (req.body["edges"].length != req.body["weights"].length || req.body["symetric"] == 1 || req.body["nodes"].length != req.body["huri"].length)
+    {
+        res.status(404).send("Bad Request (Wrong Size/ Non Symetric)");
+    }
+    else
+    {
+        var graph = Graph();
+        var nodes = new Object();
+        for (let i = 0; i < req.body["nodes"].length; ++i)
+        {
+            graph.addNode(req.body["nodes"][i]);
+            nodes[req.body["nodes"][i]] = req.body["huri"][i]
+        }
+        for (let i = 0; i < req.body["edges"].length; ++i)
+        {
+            graph.addEdge(req.body["edges"][i][0],req.body["edges"][i][1],req.body["weights"][i]);
+        }
+        var serilaize = graph.serialize();
+        //console.log(serilaize);
+        //console.log(graph);
+        //console.log(nodes);
+        /* Greedy  */
+        
+        greedy(graph,nodes,req.body["src"],req.body["dst"]);
+
+        res.status(404).send("Nibbas");
+    }
+});
 
 
 
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 8080; //node is gay
 app.listen(port, () => {
     console.log("started on ",port);
 });
