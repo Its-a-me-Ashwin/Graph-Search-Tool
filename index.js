@@ -2,8 +2,9 @@ const express = require("express");
 const Graph = require("graph-data-structure");
 const bodyParser = require('body-parser');
 const Queues = require("Queue");
-const Queue = Queues.Queue;
+const vis = require("vis");
 
+const Queue = Queues.Queue;
 
 const app = express();
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -11,11 +12,8 @@ app.use(bodyParser.json());
 app.use(bodyParser.raw());
 
 app.use(function(req, res, next) {
-
     res.header("Access-Control-Allow-Origin", "*");
-  
     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-  
     next();
   
   });
@@ -112,8 +110,8 @@ function greedy (graph,huri,src,dst)
 /api/v1/test
 */
 app.post('/api/v1/test', (req,res) => {
-    console.log("Testing")
-    res.status(200).send({"Status" : "Working"});
+    console.log("All modules Loaded");
+    res.status(200).send({"Status" : "Online"});
 });
 
 
