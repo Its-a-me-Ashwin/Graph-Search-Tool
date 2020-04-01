@@ -4,6 +4,15 @@ import React, { Component } from 'react';
 import Graph from 'vis-react';
 
 
+var Background = "../backgroundPic.jpg";
+var sectionStyle = {
+    width: "100%",
+    height: "400px",
+    backgroundImage: `url(${Background})`,
+    color : "black"
+};
+
+
 class Counter extends Component {
     state = { 
         nodeData : [], /*
@@ -50,8 +59,18 @@ class Counter extends Component {
         super();
         this.addNode = this.addNode.bind(this); 
         this.addEdge = this.addEdge.bind(this); 
+        this.displayGraph = this.displayGraph.bind(this);
     }
 
+    findId (list,label)
+    {
+        for (let i =0; i < list.length; ++i)
+        {
+            if (list[i]['label'] == label)
+                return list[i]['id'];
+        }
+        return 'NO';
+    }
 
     /*
         api to test if server is up
@@ -146,7 +165,7 @@ class Counter extends Component {
         };
     }
 
-    addNode(name,huri,x,y){
+    addNode(name,huri,x=0,y=0){
         let data = name;
         if (typeof(data) == undefined || typeof(huri) == undefined || typeof(x) == undefined || typeof(y) == undefined) 
             return ; // no data given
@@ -162,8 +181,6 @@ class Counter extends Component {
             this.state.nodeData = clonenodeData;
             this.setState({tag : clonenodeData})
             clonenodeData.push(nodeDatal);
-            //console.log(nodeDatal);
-            //console.log(this.state.nodeData);
         }
     }
 
@@ -176,7 +193,7 @@ class Counter extends Component {
         }
         else
         {
-            var checkData = Array();
+            var checkData = [];
             for (let i =0; i < this.state.nodeData.length; ++i)
             {
                 checkData.push(this.state.nodeData[i]["name"]);
@@ -187,7 +204,7 @@ class Counter extends Component {
                 return ;
             }
 
-            var check = Array();
+            var check = [];
             for (let i =0; i < this.state.weightData.length; ++i)
             {
                 check.push(this.state.weightData[i]["name"]);
@@ -221,31 +238,34 @@ class Counter extends Component {
             console.log('Nodes:',j,this.state.nodeData[i]["name"]);
             j = j+1;
         }
-        var tempEdges = []
         for (let i =0; i < this.state.weightData.length; ++i)
         {
+            let source = this.findId(graph.nodes,this.state.weightData[i]["src"]);
+            let dest = this.findId(graph.nodes,this.state.weightData[i]["dst"]);
+            //console.log(this.state.weightData[i]["src"],this.state.weightData[i]["dst"],this.state.nodeData);
+            if (source === 'NO' || dest === 'NO')
+            {
+                console.log("Client Error");
+                return {};
+            }
             graph.edges.push(
                 {
-                    from : this.state.weightData[i]["src"],
-                    to : this.state.weightData[i]["dst"]
+                    from : source,
+                    to : dest
                 }
             );
-            console.log('Edges:',this.state.weightData[i]["dst"],'=>',this.state.weightData[i]["src"]);
         }
-        console.log("GRAPH : ", graph.edges)
-        return graph
+        return JSON.parse(JSON.stringify(graph));
     }
 
     render() { 
         return (
-            <div style = {this.styleBg}> 
+            <div style = {sectionStyle}> 
                 <h1 style = {this.styleCenter}> Generate the Graph </h1>
                 <h2 style = {this.styleLeft} > Add the Nodes </h2>
                 <input type = "text" ref = "nodeName" placeholder = "Enter Node Name"/>
                 <input type = "text" ref = "nodeHuri" placeholder = "Enter Hursitic to goal"/>
-                <input type = "text" ref = "nodeX" placeholder = "Enter Loacation (x)"/>
-                <input type = "text" ref = "nodeY" placeholder = "Enter Location (y)"/>
-                <button onClick = {() => this.addNode(this.refs.nodeName.value,this.refs.nodeHuri.value,this.refs.nodeX.value,this.refs.nodeY.value)} className = "btn btn-secondary btn-sm"> Add Node </button>
+                <button onClick = {() => this.addNode(this.refs.nodeName.value,this.refs.nodeHuri.value)} className = "btn btn-secondary btn-sm"> Add Node </button>
                 <hr/>
 
                 <h2 style = {this.styleLeft} > Add the Edges </h2>
@@ -256,15 +276,18 @@ class Counter extends Component {
                 <hr/>
 
                 <h2> Graph generated: </h2>
-                {this.renderNodesList ()}
+                {this.renderNodesList()}
                 {this.renderEdgesList()}
                 <hr/>
-                <button onClick = {() => this.testApi()} className = "btn btn-secondary btn-sm"> Check Server </button>
-                <button onClick = {() => this.DijkstraApi()} className = "btn btn-secondary btn-sm"> Test DFS </button>
+                <h2 style = {this.styleCenter}> The Graph </h2>
+
                 <Graph
                     graph={this.displayGraph()}
                     options={this.state.options}
-                />
+                />     
+
+                <button onClick = {() => this.testApi()} className = "btn btn-secondary btn-sm"> Check Server </button>
+                <button onClick = {() => this.DijkstraApi()} className = "btn btn-secondary btn-sm"> Test DFS </button>           
             </div>
         );
     }
