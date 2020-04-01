@@ -127,6 +127,7 @@ input : {
 */
 app.post('/api/v1/dijkstra', (req,res) => {
     console.log("Dijkstra");
+    //console.log(req.body)
     if (req.body["edges"].length != req.body["weights"].length || req.body["symetric"] == 1)
     {
         res.status(404).send("Bad Request (Wrong Size/ Non Symetric)");
