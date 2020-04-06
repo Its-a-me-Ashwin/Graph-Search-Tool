@@ -144,16 +144,27 @@ app.post('/api/v1/dijkstra', (req,res) => {
             graph.addEdge(req.body["edges"][i][0],req.body["edges"][i][1],req.body["weights"][i]);
         }
         var serilaize = graph.serialize();
-        var result = graph.shortestPath(req.body["src"],req.body["dst"]); 
-        //console.log(serilaize);
-        var out = {}           
-        var num = 1;
-        for (let i = 0; i < result.length; ++i)
-        {
-            out[result[i]] = num;
-            num += 1;
+        try {
+            var result = graph.shortestPath(req.body["src"],req.body["dst"]); 
+            //console.log(serilaize);
+            var out = {}           
+            var num = 1;
+            out["Result"] = "Yes"
+            for (let i = 0; i < result.length; ++i)
+            {
+                out[result[i]] = num;
+                num += 1;
+            }
+            console.log(JSON.stringify(out));
+            res.status(200).send(JSON.stringify(out));
         }
-        res.status(200).send(JSON.stringify(out));
+        catch(err) {
+            var out = {
+                "Result" : "No"
+            }
+            console.log(out);
+            res.status(204).send(JSON.stringify(out));
+        }
     }
 });
 
