@@ -109,7 +109,15 @@ class Counter extends Component {
             (responseJson) => 
             {
                 result = responseJson;
-                //console.log("Return Data :",result);
+                console.log("Return Data :",result["Result"]);
+                if (result["Result"] === "Yes")
+                {
+                    console.log("Path")
+                }
+                else
+                {
+                    console.log("No Path")
+                }
                 var items = Object.keys(result).map(function(key) {
                     return [key, result[key]];
                 });  
@@ -152,7 +160,7 @@ class Counter extends Component {
             bodyData["edges"].push([this.state.weightData[i]["src"],this.state.weightData[i]["dst"]]); // Name
             bodyData["weights"].push(this.state.weightData[i]["weight"]);
         }
-        console.log(bodyData);
+        //console.log(bodyData);
         return this.sendDijkstraApiCall('http://127.0.0.1:8080/api/v1/dijkstra',bodyData);
     }
 
