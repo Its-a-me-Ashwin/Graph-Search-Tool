@@ -18,7 +18,7 @@ class Counter extends Component {
         nodeData : [], /*
                         {"name" : name,
                         "huristic" : huri,
-                        "x_pos" : x,
+                        "x_pos" : x,added 
                         "y_pos" : y}*/
         weightData : [], /*
                         {"name": src +dst, 
@@ -27,26 +27,15 @@ class Counter extends Component {
                         "weight" : weight
                         }*/
         graph : {
-            nodes: [
-                { id: 1, label: 'Node 1' },
-                { id: 2, label: 'Node 2' },
-                { id: 3, label: 'Node 3' },
-                { id: 4, label: 'Node 4' },
-                { id: 5, label: 'Node 5' }
-                ],
-            edges: [
-                { from: 1, to: 2 },
-                { from: 1, to: 3 },
-                { from: 2, to: 4 },
-                { from: 2, to: 5 }
-                ]
+            nodes : [],
+            edges : []
                 },
-        options : {
+        default : {
             layout: {
                 hierarchical: true
             },
             edges: {
-                color: '#000000'
+                color: 'red'
             },
             interaction: { hoverEdges: true }
                 }
@@ -120,22 +109,51 @@ class Counter extends Component {
             (responseJson) => 
             {
                 result = responseJson;
-                console.log("Return Data :",result);
+                //console.log("Return Data :",result);
+                var items = Object.keys(result).map(function(key) {
+                    return [key, result[key]];
+                });  
+                // Sort the array based on the second element
+                items.sort(function(first, second) {
+                    return first[1] - second[1];
+                });
+                console.log(items)
+                for (let i =0; i < items.length; ++i)
+                {
+                    // GAY STUFF
+                    //console.log(this.displayStep(items[i][0]));
+                    /*return <div>
+                                <Graph
+                                    graph={this.displayStep(items[i][0])}
+                                    options={this.state.default}
+                                />     
+                           </div>*/
+                }
             }
         );   
     }
 
     // fx this shit
-    DijkstraApi ()
+    DijkstraApi (src,dst)
     {
         var bodyData = {
-            "nodes" : ["a", "b", "c"],
-            "weights" : [1,2],
-            "edges": [["a","b"],["b","c"]],
-            "src" : "a",
-            "dst": "b"
+            "nodes" : [],
+            "weights" : [],
+            "edges": [],
+            "src" : src,
+            "dst": dst
         }
-        this.sendDijkstraApiCall('http://127.0.0.1:8080/api/v1/dijkstra',bodyData);
+        for (let i = 0;i < this.state.nodeData.length; ++i)
+        {
+            bodyData["nodes"].push(this.state.nodeData[i]["name"]); // Name
+        }
+        for (let i = 0;i < this.state.weightData.length; ++i)
+        {
+            bodyData["edges"].push([this.state.weightData[i]["src"],this.state.weightData[i]["dst"]]); // Name
+            bodyData["weights"].push(this.state.weightData[i]["weight"]);
+        }
+        console.log(bodyData);
+        return this.sendDijkstraApiCall('http://127.0.0.1:8080/api/v1/dijkstra',bodyData);
     }
 
     renderNodesList () {
@@ -220,22 +238,29 @@ class Counter extends Component {
         }
     }
 
-    displayGraph ()
+
+    displayStep(nodesReached)
     {
         var graph = {
             nodes : [],
             edges : []
         };
+        var reachedLabel = this.findId(graph.nodes,nodesReached);
         var j = 1;
         for (let i =0; i < this.state.nodeData.length; ++i)
         {
+            var caolorNode = "green";
+            if (reachedLabel == i)
+            {
+                caolorNode = "red";
+            }
             graph.nodes.push(
                 {
                     id : j,
-                    label : this.state.nodeData[i]["name"]
+                    label : this.state.nodeData[i]["name"],
+                    color : caolorNode
                 }
             );
-            console.log('Nodes:',j,this.state.nodeData[i]["name"]);
             j = j+1;
         }
         for (let i =0; i < this.state.weightData.length; ++i)
@@ -250,6 +275,46 @@ class Counter extends Component {
             }
             graph.edges.push(
                 {
+                    color : 'black',
+                    from : source,
+                    to : dest
+                }
+            );
+        }
+        return JSON.parse(JSON.stringify(graph));
+    }
+
+    displayGraph ()
+    {
+        var graph = {
+            nodes : [],
+            edges : []
+        };
+        var j = 1;
+        for (let i =0; i < this.state.nodeData.length; ++i)
+        {
+            graph.nodes.push(
+                {
+                    id : j,
+                    label : this.state.nodeData[i]["name"],
+                    color : "green"
+                }
+            );
+            j = j+1;
+        }
+        for (let i =0; i < this.state.weightData.length; ++i)
+        {
+            let source = this.findId(graph.nodes,this.state.weightData[i]["src"]);
+            let dest = this.findId(graph.nodes,this.state.weightData[i]["dst"]);
+            //console.log(this.state.weightData[i]["src"],this.state.weightData[i]["dst"],this.state.nodeData);
+            if (source === 'NO' || dest === 'NO')
+            {
+                console.log("Client Error");
+                return {};
+            }
+            graph.edges.push(
+                {
+                    color : 'black',
                     from : source,
                     to : dest
                 }
@@ -283,11 +348,14 @@ class Counter extends Component {
 
                 <Graph
                     graph={this.displayGraph()}
-                    options={this.state.options}
+                    options={this.state.default}
                 />     
+                <hr/>
 
+                <input type = "text" ref = "src" placeholder = "Enter src"/>
+                <input type = "text" ref = "dst" placeholder = "Enter dst"/>
                 <button onClick = {() => this.testApi()} className = "btn btn-secondary btn-sm"> Check Server </button>
-                <button onClick = {() => this.DijkstraApi()} className = "btn btn-secondary btn-sm"> Test DFS </button>           
+                <button onClick = {() => this.DijkstraApi(this.refs.src.value,this.refs.dst.value)} className = "btn btn-secondary btn-sm"> Test DijkstraApi </button>           
             </div>
         );
     }
