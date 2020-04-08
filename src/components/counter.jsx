@@ -30,6 +30,7 @@ class Counter extends Component {
             nodes : [],
             edges : []
                 },
+        step : [],
         default : {
             layout: {
                 hierarchical: true
@@ -49,8 +50,17 @@ class Counter extends Component {
         this.addNode = this.addNode.bind(this); 
         this.addEdge = this.addEdge.bind(this); 
         this.displayGraph = this.displayGraph.bind(this);
+        this.sendDfsApiCall = this.sendDfsApiCall.bind(this);
     }
 
+    checkPostion(arr,a)
+    {
+        for (let i =0;i < arr.length; ++i)
+        {
+            if (arr[i] == a) return true;
+        }
+        return false;
+    }
     findId (list,label)
     {
         for (let i =0; i < list.length; ++i)
@@ -128,14 +138,7 @@ class Counter extends Component {
                 console.log(items)
                 for (let i =0; i < items.length; ++i)
                 {
-                    // GAY STUFF
-                    //console.log(this.displayStep(items[i][0]));
-                    /*return <div>
-                                <Graph
-                                    graph={this.displayStep(items[i][0])}
-                                    options={this.state.default}
-                                />     
-                           </div>*/
+                   
                 }
             }
         );   
@@ -163,6 +166,70 @@ class Counter extends Component {
         //console.log(bodyData);
         return this.sendDijkstraApiCall('http://127.0.0.1:8080/api/v1/dijkstra',bodyData);
     }
+
+    sendDfsApiCall (url,bodyJson)
+    {
+        if (typeof(url) == undefined || typeof(bodyJson) == undefined)
+            return;
+        var result;
+        fetch(url, {
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+                },
+        body: JSON.stringify(bodyJson),
+        }).then((response) => response.json()).then(
+            (responseJson) => 
+            {
+                result = responseJson;
+                console.log("Return Data :",result["Result"]);
+                {this.renderGraph()}              if (result["Result"] === "Yes")
+                {
+                    console.log("Path")
+                }
+                else
+                {
+                    console.log("No Path")
+                }
+                var items = result["Graph"];
+                for (let i =0; i < items.length; ++i)
+                {
+                    console.log(items[i]);
+                    this.setState({step: items[i]});
+                    setTimeout(() => {;},1000);
+                    //this.state.step = items[i]
+                    //console.log(this.state.step)
+                    //this.renderGraph(items[i]);
+                }
+            }
+        );   
+    }
+
+    DfsApi (src,dst)
+    {
+        var bodyData = {
+            "nodes" : [],
+            "weights" : [],
+            "edges": [],
+            "src" : src,
+            "dst": dst
+        }
+        for (let i = 0;i < this.state.nodeData.length; ++i)
+        {
+            bodyData["nodes"].push(this.state.nodeData[i]["name"]); // Name
+        }
+        for (let i = 0;i < this.state.weightData.length; ++i)
+        {
+            bodyData["edges"].push([this.state.weightData[i]["src"],this.state.weightData[i]["dst"]]); // Name
+            bodyData["weights"].push(this.state.weightData[i]["weight"]);
+        }
+        //console.log(bodyData);
+        return this.sendDfsApiCall('http://127.0.0.1:8080/api/v1/dfs',bodyData);
+    }
+
+
+
 
     renderNodesList () {
         if (this.state.nodeData.length === 0) return <p> No nodes added </p>;
@@ -247,49 +314,14 @@ class Counter extends Component {
     }
 
 
-    displayStep(nodesReached)
+    renderGraph()
     {
-        var graph = {
-            nodes : [],
-            edges : []
-        };
-        var reachedLabel = this.findId(graph.nodes,nodesReached);
-        var j = 1;
-        for (let i =0; i < this.state.nodeData.length; ++i)
-        {
-            var caolorNode = "green";
-            if (reachedLabel == i)
-            {
-                caolorNode = "red";
-            }
-            graph.nodes.push(
-                {
-                    id : j,
-                    label : this.state.nodeData[i]["name"],
-                    color : caolorNode
-                }
-            );
-            j = j+1;
-        }
-        for (let i =0; i < this.state.weightData.length; ++i)
-        {
-            let source = this.findId(graph.nodes,this.state.weightData[i]["src"]);
-            let dest = this.findId(graph.nodes,this.state.weightData[i]["dst"]);
-            //console.log(this.state.weightData[i]["src"],this.state.weightData[i]["dst"],this.state.nodeData);
-            if (source === 'NO' || dest === 'NO')
-            {
-                console.log("Client Error");
-                return {};
-            }
-            graph.edges.push(
-                {
-                    color : 'black',
-                    from : source,
-                    to : dest
-                }
-            );
-        }
-        return JSON.parse(JSON.stringify(graph));
+        return <div>
+            <Graph
+                    graph={this.displayGraph()}
+                    options={this.state.default}
+                />     
+        </div>
     }
 
     displayGraph ()
@@ -298,14 +330,26 @@ class Counter extends Component {
             nodes : [],
             edges : []
         };
+        console.log("In display",this.state.step);
         var j = 1;
+        var color;
+        var visited = this.state.step;
         for (let i =0; i < this.state.nodeData.length; ++i)
         {
+            if (this.checkPostion(visited,this.state.nodeData[i]["name"]))
+            {
+                color = "red";
+            }
+            else
+            {
+                color = "green";
+            }
+            //console.log(this.state.nodeData[i]["name"],visited);
             graph.nodes.push(
                 {
                     id : j,
                     label : this.state.nodeData[i]["name"],
-                    color : "green"
+                    color : color
                 }
             );
             j = j+1;
@@ -320,9 +364,17 @@ class Counter extends Component {
                 console.log("Client Error");
                 return {};
             }
+            if (this.checkPostion(visited,this.state.nodeData[i]["name"]))
+            {
+                color = "red";
+            }
+            else
+            {
+                color = "green";
+            }
             graph.edges.push(
                 {
-                    color : 'black',
+                    color : color,
                     from : source,
                     to : dest
                 }
@@ -363,7 +415,8 @@ class Counter extends Component {
                 <input type = "text" ref = "src" placeholder = "Enter src"/>
                 <input type = "text" ref = "dst" placeholder = "Enter dst"/>
                 <button onClick = {() => this.testApi()} className = "btn btn-secondary btn-sm"> Check Server </button>
-                <button onClick = {() => this.DijkstraApi(this.refs.src.value,this.refs.dst.value)} className = "btn btn-secondary btn-sm"> Test DijkstraApi </button>           
+                <button onClick = {() => this.DijkstraApi(this.refs.src.value,this.refs.dst.value)} className = "btn btn-secondary btn-sm"> Test DijkstraApi </button>
+                <button onClick = {() => this.DfsApi(this.refs.src.value,this.refs.dst.value)} className = "btn btn-secondary btn-sm"> Test DFS </button>           
             </div>
         );
     }
