@@ -50,8 +50,16 @@ class Counter extends Component {
         this.addNode = this.addNode.bind(this); 
         this.addEdge = this.addEdge.bind(this); 
         this.displayGraph = this.displayGraph.bind(this);
+        this.task = this.task.bind(this);
         this.sendDfsApiCall = this.sendDfsApiCall.bind(this);
+        this.sendDijkstraApiCall = this.sendDijkstraApiCall.bind(this);
+
     }
+    task(delay) { 
+        var d = new Date();
+        var n =  d.getSeconds();
+        while (Math.abs(new Date().getSeconds() - n)<delay);
+      } 
 
     checkPostion(arr,a)
     {
@@ -88,7 +96,7 @@ class Counter extends Component {
             {
                 result = responseJson;
                 //console.log("Status:",result["Status"]);
-                if (result["Status"] === "Online") alert("Status : " + result["Status"]);
+                if (result["Status"] === "Online");
                 else alert("Server Offline!!!");
             }
         );
@@ -138,7 +146,9 @@ class Counter extends Component {
                 console.log(items)
                 for (let i =0; i < items.length; ++i)
                 {
-                   
+                   if (items[i][0] === "Result") continue;
+                   this.setState({step : items[i][0]});
+                   /// ADD THE GAY DELAY
                 }
             }
         );   
@@ -195,9 +205,10 @@ class Counter extends Component {
                 var items = result["Graph"];
                 for (let i =0; i < items.length; ++i)
                 {
-                    console.log(items[i]);
                     this.setState({step: items[i]});
-                    setTimeout(() => {;},1000);
+                    //this.forceUpdate();
+                    //this.task(2);
+                    // ADD DELAY
                     //this.state.step = items[i]
                     //console.log(this.state.step)
                     //this.renderGraph(items[i]);
