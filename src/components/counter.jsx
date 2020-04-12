@@ -36,6 +36,7 @@ class Counter extends Component {
         dfsInfo : '',
         ucsInfo : '',
         dksInfo : '',
+        bfsInfo : '',
         nigga : undefined,
         default : {
             layout: {
@@ -114,6 +115,17 @@ class Counter extends Component {
                                 else
                                 {
                                     this.setState({dksInfo : ''});
+                                    break;
+                                }
+                    case "bfs": 
+                                if (this.state.bfsInfo.length === 0)
+                                {
+                                    this.setState({bfsInfo : result["data"]}); 
+                                    break;
+                                }
+                                else
+                                {
+                                    this.setState({bfsInfo : ''});
                                     break;
                                 }
                     default:
@@ -364,6 +376,30 @@ class Counter extends Component {
     }
 
 
+    bfsApi (src,dst)
+    {
+        var bodyData = {
+            "nodes" : [],
+            "weights" : [],
+            "edges": [],
+            "src" : src,
+            "dst": dst
+        }
+        for (let i = 0;i < this.state.nodeData.length; ++i)
+        {
+            bodyData["nodes"].push(this.state.nodeData[i]["name"]); // Name
+        }
+        for (let i = 0;i < this.state.weightData.length; ++i)
+        {
+            bodyData["edges"].push([this.state.weightData[i]["src"],this.state.weightData[i]["dst"]]); // Name
+            bodyData["weights"].push(this.state.weightData[i]["weight"]);
+        }
+        //console.log(bodyData);
+        return this.sendUcsApiCall('http://127.0.0.1:8081/api/v1/bfs',bodyData);
+    }
+
+
+
     renderNodesList () {
         if (this.state.nodeData.length === 0) return <p> No nodes added </p>;
         else return <ul> {this.state.nodeData.map ( tag => <li key = {tag["name"]}> {"Name: " + tag["name"] + "  Huristic:  " +tag["huristic"]} </li> )} </ul>
@@ -567,6 +603,12 @@ class Counter extends Component {
                             <hr/>
                                 </div>
                             );
+                    case "bfs": return (
+                        <div>
+                            <p className = "bg-dark text-white"> {this.state.bfsInfo} </p>
+                            <hr/>
+                                </div>
+                            );
                     default:
                         alert("Client Error pls refresh")
         }
@@ -587,7 +629,12 @@ class Counter extends Component {
                 else
                     return "Less Info";
             case 'ucs':
-                if (this.state.dfsInfo.length === 0)
+                if (this.state.ucsInfo.length === 0)
+                    return "More Info";
+                else
+                    return "Less Info";
+            case 'bfs':
+                if (this.state.bfsInfo.length === 0)
                     return "More Info";
                 else
                     return "Less Info";
@@ -727,6 +774,15 @@ class Counter extends Component {
                         &nbsp;&nbsp;&nbsp;
                         <button className = "btn btn-info btn-sm" onClick = {() => {this.getInfoApi("dfs")}}>  {this.lessMore("dfs")} </button>
                         {this.renderInfo("dfs")}
+                        <button className = "btn btn-info btn-sm" onClick = {() => this.setNigga()}> See Each Step </button>
+                        {this.finalRender()}
+                        <hr/>
+                    </li>
+                    <li>
+                        <button onClick = {() => this.bfsApi(this.refs.src.value,this.refs.dst.value)} className = "btn btn-primary  btn-sm"> Breath First Search </button>          
+                        &nbsp;&nbsp;&nbsp;
+                        <button className = "btn btn-info btn-sm" onClick = {() => {this.getInfoApi("bfs")}}>  {this.lessMore("ucs")} </button>
+                        {this.renderInfo("bfs")}
                         <button className = "btn btn-info btn-sm" onClick = {() => this.setNigga()}> See Each Step </button>
                         {this.finalRender()}
                         <hr/>
