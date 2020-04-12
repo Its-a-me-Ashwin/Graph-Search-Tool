@@ -1,4 +1,4 @@
-from queue import PriorityQueue
+from queue import PriorityQueue,Queue
 from flask import Flask,jsonify,request
 import json
 from flask_cors import CORS
@@ -79,6 +79,60 @@ def uniformCost():
 
 
 
+@app.route("/api/v1/bfs",methods=["POST"])
+def bfs():
+    try:
+        data = request.get_json()
+        print(data)
+        node = data["nodes"]
+        weight = data["weights"]
+        edges = data["edges"]
+        #heuris = data["huri"]
+        src = data["src"]
+        dest = data["dst"]
+        graph = {}
+        vertex_no = len(node)
+        for n in node:
+            graph[n] = []
+        for edg in edges:
+            graph[edg[0]].append(edg[1])
+        q = Queue()
+        result = []
+        visited = set()
+        visited.add(src)
+        q.put(src)
+        parent = {}
+        parent[src] = ""
+        while not q.empty():
+            n = q.qsize()
+            temp = []
+            temp.append(src)
+            for i in range(n):
+                next_item = q.get()
+                print(next_item)
+                temp.append(next_item)
+                if(next_item== dest):
+                    break
+                for li in graph[next_item]:
+                    if li[0] not in visited:
+                        parent[li[0]] = next_item
+                        q.put(li[0])
+                        visited.add(li[0])
+            result.append(temp)
+        result[0].pop()
+        result = list(map(lambda x: json.dumps(x), result))
+        rs = dict()
+        rs["Result"] = "Yes"
+        rs["Graph"] = result#json.dumps(result)
+        rs["GAY"] = result
+        if (dest not in result[len(result) - 1]): 
+            rs["Result"] = "No"
+        return json.dumps(rs),200
+    except Exception as e:
+        print(e)
+        return jsonify({"Result":"No"}),400
+
+
 
 
 @app.route("/api/v1/info/dfs",methods=["POST"])
@@ -98,6 +152,13 @@ def infUcs ():
 @app.route("/api/v1/info/dks",methods=["POST"])
 def infDks ():
     fp = open('info/infoDks.txt','rt')
+    data = fp.read()
+    fp.close()
+    return jsonify({"data":data}),200
+    
+@app.route("/api/v1/info/bfs",methods=["POST"])
+def infBfs ():
+    fp = open('info/infoBfs.txt','rt')
     data = fp.read()
     fp.close()
     return jsonify({"data":data}),200
