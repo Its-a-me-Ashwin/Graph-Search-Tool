@@ -14,5 +14,4 @@
 
 
 ## To do:
-* decode server and visualize the data
-* add more css to the UI
+* add more Algorithms
