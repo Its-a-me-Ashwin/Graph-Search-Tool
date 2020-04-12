@@ -14,9 +14,5 @@
 
 
 ## To do:
-* fix bugs in user to server comuniation.
 * decode server and visualize the data
-* small changes to the UI
 * add more css to the UI
-* test all the algorithms
-* add more algorithms (if time permits)
