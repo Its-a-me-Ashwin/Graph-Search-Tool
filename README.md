@@ -9,9 +9,11 @@
 ## To run:
 * git clone url
 * nodemon index.js
+* python3 flask_server.py
 * npm start
 
 
 
 ## To do:
 * add more Algorithms
+* add the ppt
