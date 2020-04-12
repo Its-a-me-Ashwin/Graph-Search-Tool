@@ -32,9 +32,11 @@ class Counter extends Component {
                 },
         serverStatus : false,
         step : [],
+        fullPath : undefined,
         dfsInfo : '',
         ucsInfo : '',
         dksInfo : '',
+        nigga : undefined,
         default : {
             layout: {
                 hierarchical: true
@@ -58,6 +60,7 @@ class Counter extends Component {
         this.task = this.task.bind(this);
         this.sendTestApiCall = this.sendTestApiCall.bind(this);
         this.sendDfsApiCall = this.sendDfsApiCall.bind(this);
+        this.setNigga = this.setNigga.bind(this);
         this.sendDijkstraApiCall = this.sendDijkstraApiCall.bind(this);
         //this.getInfo = this.getInfo.bind(this);
         this.getInfoApi = this.getInfoApi.bind(this);
@@ -270,6 +273,7 @@ class Counter extends Component {
                 }
                 var items = result["Graph"];
                 console.log(items);
+                this.setState({fullPath : items});
                 for (let i =0; i < items.length; ++i)
                 {
                     this.setState({step: items[i]});
@@ -328,6 +332,7 @@ class Counter extends Component {
                 }
                 var items = result["Graph"];
                 console.log(items);
+                this.setState({fullPath : items});
                 for (let i =0; i < items.length; ++i)
                 {
                     this.setState({step: items[i]});
@@ -366,7 +371,7 @@ class Counter extends Component {
 
     renderEdgesList () {
         if (this.state.weightData.length === 0) return <p> No Edges added </p>;
-        else return <ul> {this.state.weightData.map ( tag => <li key = {tag["name"]}> {"Source:" + tag["src"] + " Destination:" +  tag["dst"] + "Weight" + tag["weight"]} </li> )} </ul>
+        else return <ul> {this.state.weightData.map ( tag => <li key = {tag["name"]}> {"Source: " + tag["src"] + " Destination: " +  tag["dst"] + " Weight: " + tag["weight"]} </li> )} </ul>
     }
 
     makeNode (name,huri,x,y){
@@ -458,7 +463,7 @@ class Counter extends Component {
             nodes : [],
             edges : []
         };
-        console.log("In display",this.state.step);
+        //console.log("In display",this.state.step);
         var j = 1;
         var color;
         var visited = this.state.step;
@@ -546,19 +551,19 @@ class Counter extends Component {
                                 console.log("dfs info render");
                                 return (
                                     <div>
-                                        <p> {this.state.dfsInfo} </p>
+                                        <p className = "bg-dark text-white"> {this.state.dfsInfo} </p>
                                         <hr/>
                                     </div>
                                 );
                     case "ucs": return (
                         <div>
-                            <p> {this.state.ucsInfo} </p>
+                            <p className = "bg-dark text-white"> {this.state.ucsInfo} </p>
                             <hr/>
                             </div>
                         );
                     case "dks": return (
                         <div>
-                            <p> {this.state.dksInfo} </p>
+                            <p className = "bg-dark text-white"> {this.state.dksInfo} </p>
                             <hr/>
                                 </div>
                             );
@@ -586,7 +591,87 @@ class Counter extends Component {
                     return "More Info";
                 else
                     return "Less Info";
+            default:
+                    alert("Client Error pls refresh")
         }
+    }
+
+
+
+
+    displayGraphStep (stepData)
+    {
+        var graph = {
+            nodes : [],
+            edges : []
+        };
+        //console.log("In display",this.state.step);
+        var j = 1;
+        var color;
+        var visited = stepData;
+        for (let i =0; i < this.state.nodeData.length; ++i)
+        {
+            if (this.checkPostion(visited,this.state.nodeData[i]["name"]))
+            {
+                color = "red";
+            }
+            else
+            {
+                color = "green";
+            }
+            //console.log(this.state.nodeData[i]["name"],visited);
+            graph.nodes.push(
+                {
+                    id : j,
+                    label : this.state.nodeData[i]["name"],
+                    color : color
+                }
+            );
+            j = j+1;
+        }
+        for (let i =0; i < this.state.weightData.length; ++i)
+        {
+            let source = this.findId(graph.nodes,this.state.weightData[i]["src"]);
+            let dest = this.findId(graph.nodes,this.state.weightData[i]["dst"]);
+            //console.log(this.state.weightData[i]["src"],this.state.weightData[i]["dst"],this.state.nodeData);
+            if (source === 'NO' || dest === 'NO')
+            {
+                console.log("Client Error");
+                return {};
+            }
+            if (this.checkPostion(visited,this.state.nodeData[i]["name"]))
+            {
+                color = "red";
+            }
+            else
+            {
+                color = "green";
+            }
+            graph.edges.push(
+                {
+                    color : color,
+                    from : source,
+                    to : dest
+                }
+            );
+        }
+        return JSON.parse(JSON.stringify(graph));
+    }
+
+
+    finalRender ()
+    {
+        console.log("Hello",this.state.fullPath);
+        if (this.state.fullPath === undefined || this.state.nigga === undefined) return <span className = "badge m-2 badge-danger">No Path Currently</span>
+        return <ul>
+        {this.state.fullPath.map(tag => <li key = {Math.random()}><Graph graph={this.displayGraphStep(tag)} options={this.state.default} /> </li>)}
+            </ul>;
+    }
+
+    setNigga()
+    {
+        if (this.state.nigga === undefined) this.setState({nigga : "DO"});
+        else this.setState({nigga:undefined});
     }
     render() { 
         return (
@@ -604,9 +689,12 @@ class Counter extends Component {
                 <input type = "text" ref = "edgeWeight" placeholder = "Enter weight"/>
                 <button onClick = {() => this.addEdge(this.refs.edgeSrc.value,this.refs.edgeDst.value,this.refs.edgeWeight.value)} className = "btn btn-primary btn-sm"> Add Node </button>
                 <hr/>
+                <label for="favcolor">Non visited color</label>
+                <input type="color" ref="NV" name="favcolor" value="#0000ff"></input>&nbsp;&nbsp;&nbsp;
+                <label for="favcolor">Visited Color</label>
+                <input type="color" ref="V" name="favcolor" value="#ff0000"></input>&nbsp;&nbsp;&nbsp;
 
                 <button className = {this.getBtn()} onClick = {() => this.resetGraph()}>Reset Graph</button>
-
                 <h2> Graph generated: </h2>
                 {this.renderNodesList()}
                 {this.renderEdgesList()}
@@ -628,18 +716,29 @@ class Counter extends Component {
                 <ul>
                     <li>
                         <button onClick = {() => this.DijkstraApi(this.refs.src.value,this.refs.dst.value)} className = "btn btn-primary btn-sm"> Dijkstra Algorithm </button>
+                        &nbsp;&nbsp;&nbsp;
                         <button className = "btn btn-info btn-sm" onClick = {() => {this.getInfoApi("dks")}}>  {this.lessMore("dks")} </button>
                         {this.renderInfo("dks")}
+                        <span className = "bg-warning text-white"> Steps for this algorithm are unavailable </span>
+                        <hr/>
                     </li>
                     <li>
-                        <button onClick = {() => this.DfsApi(this.refs.src.value,this.refs.dst.value)} className = "btn btn-primary btn-sm"> Depth First Search </button> 
+                        <button onClick = {() => {this.DfsApi(this.refs.src.value,this.refs.dst.value);}} className = "btn btn-primary btn-sm"> Depth First Search </button> 
+                        &nbsp;&nbsp;&nbsp;
                         <button className = "btn btn-info btn-sm" onClick = {() => {this.getInfoApi("dfs")}}>  {this.lessMore("dfs")} </button>
                         {this.renderInfo("dfs")}
+                        <button className = "btn btn-info btn-sm" onClick = {() => this.setNigga()}> See Each Step </button>
+                        {this.finalRender()}
+                        <hr/>
                     </li>
                     <li>
                         <button onClick = {() => this.UniformApi(this.refs.src.value,this.refs.dst.value)} className = "btn btn-primary  btn-sm"> Uniform Cost Search </button>          
+                        &nbsp;&nbsp;&nbsp;
                         <button className = "btn btn-info btn-sm" onClick = {() => {this.getInfoApi("ucs")}}>  {this.lessMore("ucs")} </button>
                         {this.renderInfo("ucs")}
+                        <button className = "btn btn-info btn-sm" onClick = {() => this.setNigga()}> See Each Step </button>
+                        {this.finalRender()}
+                        <hr/>
                     </li>
                 </ul>
             </div>
