@@ -20,22 +20,82 @@ app.use(function(req, res, next) {
 
 
 
+class Stack {
+    constructor(){
+        this.data = [];
+        this.top = 0;
+    }
+    push(element) {
+      this.data[this.top] = element;
+      this.top = this.top + 1;
+    }
+   length() {
+      return this.top;
+   }
+   peek() {
+      return this.data[this.top-1];
+   }
+   isEmpty() {
+     return this.top === 0;
+   }
+   pop() {
+    if( this.isEmpty() === false ) {
+       this.top = this.top -1;
+       return this.data.pop(); // removes the last element
+     }
+   }
+   print() {
+      var top = this.top - 1; // because top points to index where new    element to be inserted
+      while(top >= 0) { // print upto 0th index
+          console.log(this.data[top]);
+           top--;
+       }
+    }
+    reverse() {
+       this._reverse(this.top - 1 );
+    }
+    _reverse(index) {
+       if(index != 0) {
+          this._reverse(index-1);
+       }
+       console.log(this.data[index]);
+    }
+}
+
+
+
 // Helper functions
 
 
+/*
+return structure :
+[
+    { node : value , node: value .....},
+    { node : value , node : value ....}
+]
 
-function dfs_utils (serilaize,graph,visited,a,num)
+value = 0 => never visted
+value = 1 => currently present
+value = 2 => visited but nowignored
+*/
+
+
+function dfs_utils (serilaize,graph,visited,a,num,temp,list)
 {
     visited[a] = num;
+    temp.push(a);
+    //console.log(temp)
+    list[list.length] = JSON.stringify(temp);
     num +=1;
     for (let j = 0; j < serilaize["links"].length; ++j)
     {
         if (serilaize["links"][j]["source"] == a)
             if (visited[serilaize["links"][j]["target"]] == 0)
             {
-                dfs_utils(serilaize,graph,visited,serilaize["links"][j]["target"],num);
+                dfs_utils(serilaize,graph,visited,serilaize["links"][j]["target"],num,temp,list);
             }
     }
+    temp.pop();
 }
 
 
@@ -48,8 +108,14 @@ function dfs (graph,src,dst)
     {
         visited[serilaize["nodes"][i]["id"]] = 0;
     }
-    dfs_utils(serilaize,graph,visited,src,1);
-    return visited
+    var temp = [];
+    var list = [];
+    dfs_utils(serilaize,graph,visited,src,1,temp,list);
+    for (let i =0; i < list.length; ++i)
+    {
+        console.log(list[i]);
+    }
+    return [visited,list];
 }
 
 function bfs (graph,src,dst)
@@ -182,7 +248,7 @@ input : {
 app.post('/api/v1/dfs', (req,res) => {
     console.log("DFS");
     if (req.body["edges"].length != req.body["weights"].length || req.body["symetric"] == 1)
-    {
+    {https://www.w3schools.com/js/js_arrays.asp
         res.status(404).send("Bad Request (Wrong Size/ Non Symetric)");
     }
     else
@@ -196,19 +262,35 @@ app.post('/api/v1/dfs', (req,res) => {
         {
             graph.addEdge(req.body["edges"][i][0],req.body["edges"][i][1],req.body["weights"][i]);
         }
-        var visited = dfs(graph,req.body["src"],req.body["dst"]);
+        var ret;
+        var list;
+        var visited;
+        ret= dfs(graph,req.body["src"],req.body["dst"]);
+        list = ret[1];
+        visited = ret[0];
+        for (let i =0; i < list.length; ++i)
+        {
+            console.log('Inside',list[i]);
+        }
         //console.log(visited,visited[req.body["dst"]]);
         if (visited[req.body["dst"]] == undefined)
         {
-            res.status(200).send("Node not found");
+            visited["Result"] = "No";
+            visited["Graph"] = list;
+            res.status(200).send(JSON.stringify(visited));
         }
         else if (visited[req.body["dst"]] != 0 )
         {
+            visited["Result"] = "Yes";
+            visited["Graph"] = list;
+            console.log(list);
             res.status(200).send(JSON.stringify(visited));
         }
         else
         {
-            res.status(200).send("No path found");
+            visited["Result"] = "No";
+            visited["Graph"] = list;
+            res.status(200).send(JSON.stringify(visited));
         }
     }
 });
