@@ -37,6 +37,7 @@ class Counter extends Component {
         ucsInfo : '',
         dksInfo : '',
         bfsInfo : '',
+        asrInfo : '',
         nigga : undefined,
         default : {
             layout: {
@@ -126,6 +127,17 @@ class Counter extends Component {
                                 else
                                 {
                                     this.setState({bfsInfo : ''});
+                                    break;
+                                }
+                    case "asr":
+                                if (this.state.asrInfo.length === 0)
+                                {
+                                    this.setState({asrInfo : result["data"]}); 
+                                    break;
+                                }
+                                else
+                                {
+                                    this.setState({asrInfo : ''});
                                     break;
                                 }
                     default:
@@ -341,6 +353,7 @@ class Counter extends Component {
                 else
                 {
                     console.log("No Path")
+                    return ;
                 }
                 var items = result["Graph"];
                 console.log(items);
@@ -396,6 +409,32 @@ class Counter extends Component {
         }
         //console.log(bodyData);
         return this.sendUcsApiCall('http://127.0.0.1:8081/api/v1/bfs',bodyData);
+    }
+
+
+    asrApi (src,dst)
+    {
+        var bodyData = {
+            "nodes" : [],
+            "weights" : [],
+            "edges": [],
+            "huri" : [],
+            "src" : src,
+            "dst": dst
+        }
+        for (let i = 0;i < this.state.nodeData.length; ++i)
+        {
+            bodyData["nodes"].push(this.state.nodeData[i]["name"]); // Name
+            bodyData["huri"].push(this.state.nodeData[i]["huristic"]); // huristic
+            
+        }
+        for (let i = 0;i < this.state.weightData.length; ++i)
+        {
+            bodyData["edges"].push([this.state.weightData[i]["src"],this.state.weightData[i]["dst"]]); // Name
+            bodyData["weights"].push(this.state.weightData[i]["weight"]);
+        }
+        //console.log(bodyData);
+        return this.sendUcsApiCall('http://127.0.0.1:8081/api/v1/asr',bodyData);
     }
 
 
@@ -609,6 +648,12 @@ class Counter extends Component {
                             <hr/>
                                 </div>
                             );
+                    case "asr": return (
+                        <div>
+                            <p className = "bg-dark text-white"> {this.state.asrInfo} </p>
+                            <hr/>
+                                </div>
+                            ); 
                     default:
                         alert("Client Error pls refresh")
         }
@@ -635,6 +680,11 @@ class Counter extends Component {
                     return "Less Info";
             case 'bfs':
                 if (this.state.bfsInfo.length === 0)
+                    return "More Info";
+                else
+                    return "Less Info";
+            case 'asr':
+                if (this.state.asrInfo.length === 0)
                     return "More Info";
                 else
                     return "Less Info";
@@ -792,6 +842,15 @@ class Counter extends Component {
                         &nbsp;&nbsp;&nbsp;
                         <button className = "btn btn-info btn-sm" onClick = {() => {this.getInfoApi("ucs")}}>  {this.lessMore("ucs")} </button>
                         {this.renderInfo("ucs")}
+                        <button className = "btn btn-info btn-sm" onClick = {() => this.setNigga()}> See Each Step </button>
+                        {this.finalRender()}
+                        <hr/>
+                    </li>
+                    <li>
+                        <button onClick = {() => this.asrApi(this.refs.src.value,this.refs.dst.value)} className = "btn btn-primary  btn-sm"> A Star Algorithm </button>          
+                        &nbsp;&nbsp;&nbsp;
+                        <button className = "btn btn-info btn-sm" onClick = {() => {this.getInfoApi("asr")}}>  {this.lessMore("asr")} </button>
+                        {this.renderInfo("asr")}
                         <button className = "btn btn-info btn-sm" onClick = {() => this.setNigga()}> See Each Step </button>
                         {this.finalRender()}
                         <hr/>
