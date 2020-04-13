@@ -8,8 +8,12 @@
 
 ## To run:
 * git clone url
+* mkdir app
+* create-react-app graph-search-tool
+* mv src graph-search-tool
 * nodemon index.js
 * python3 flask_server.py
+* cd graph-search-tool
 * npm start
 
 
